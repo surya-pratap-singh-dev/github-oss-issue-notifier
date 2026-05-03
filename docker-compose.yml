@@ -1,6 +1,7 @@
 services:
   oss-issue-notifier:
     build: .
+    user: "1000:1000"
     container_name: oss-issue-notifier
     restart: unless-stopped
     env_file:
