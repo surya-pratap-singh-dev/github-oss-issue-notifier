@@ -190,4 +190,4 @@ docker compose logs -f
 
 ## Author
 
-**Surya Pratap Singh** — [github.com/surya-pratap-singh-dev](https://github.com/surya-pratap-singh-dev)
+**Surya Pratap Singh** — [surya](https://github.com/surya-pratap-singh-dev)
