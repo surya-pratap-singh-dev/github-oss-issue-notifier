@@ -1,0 +1,9 @@
+services:
+  oss-issue-notifier:
+    build: .
+    container_name: oss-issue-notifier
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/data
