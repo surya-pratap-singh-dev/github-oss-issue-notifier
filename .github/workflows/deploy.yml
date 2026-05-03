@@ -15,15 +15,17 @@ jobs:
       - name: Syntax check
         run: python3 -m py_compile app.py
 
+      - name: Check .env exists
+        run: |
+          if [ ! -f "$HOME/github-oss-issue-notifier/.env" ]; then
+            echo "ERROR: .env file missing on VM. SSH in and create it."
+            exit 1
+          fi
+
+      - name: Copy .env into workspace
+        run: cp "$HOME/github-oss-issue-notifier/.env" .env
+
       - name: Deploy app
         run: |
-          DEPLOY_DIR="$HOME/github-oss-issue-notifier"
-          mkdir -p "$DEPLOY_DIR"
-
-          cp app.py requirements.txt Dockerfile docker-compose.yml README.md .env.example "$DEPLOY_DIR"/
-
-          cd "$DEPLOY_DIR"
-          test -f .env
-
           sudo docker compose up -d --build
           sudo docker compose ps
