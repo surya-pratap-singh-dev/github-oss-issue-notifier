@@ -1,108 +1,193 @@
 # GitHub OSS Issue Notifier
 
-This service watches selected GitHub organizations for **newly opened issues** and sends an **email digest every hour**.
+> **Never miss a good first issue again.** Watches top open-source organizations on GitHub and delivers a clean email digest — every hour, automatically.
+
+![Python](https://img.shields.io/badge/Python-3.11-blue?style=flat-square&logo=python)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker)
+![AWS](https://img.shields.io/badge/Deployed-AWS%20EC2-FF9900?style=flat-square&logo=amazon-aws)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat-square&logo=github-actions)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 ---
 
-## 1. What this project does
+## What this does
 
-1. Calls GitHub API for org issues (PRs are ignored).
-2. Finds only newly opened issues since last check.
-3. Sends one digest email (hourly by default).
-4. Saves already-sent issues in SQLite (`/data/notifier.db`) to prevent duplicates.
+Most developers miss great open-source contribution opportunities because they don't constantly refresh GitHub. This tool fixes that.
 
----
+- Polls GitHub API every hour for newly opened issues across selected orgs
+- Skips PRs — issues only
+- Sends one clean digest email per interval
+- Stores seen issues in SQLite to prevent duplicate alerts
+- Runs 24/7 on a cloud VM via Docker + GitHub Actions CI/CD
 
-## 2. Prerequisites
-
-1. A Linux cloud VM (Ubuntu recommended).
-2. Docker + Docker Compose installed.
-3. A Gmail account with **2-Step Verification** enabled.
-4. A destination email address to receive alerts.
-5. Optional: GitHub Personal Access Token (recommended for higher API limits).
+**Monitored by default:** `supabase`, `python`, `digitalocean`, `pytorch`, `the-algorithms`, `freeCodeCamp` — fully configurable.
 
 ---
 
-## 3. Get the required `.env` values (with sources)
+## Architecture
 
-Use this table while filling `.env`:
+```
+GitHub API
+    │
+    ▼
+app.py (Python scheduler)
+    │  polls every N minutes
+    ├──► SQLite DB  (/data/notifier.db)
+    │    deduplication store
+    │
+    └──► Gmail SMTP
+         email digest to your inbox
+```
 
-| Variable | Required | Example | Where to get it |
-|---|---|---|---|
-| `GITHUB_TOKEN` | No (Recommended) | `github_pat_xxx` | GitHub -> Settings -> Developer settings -> Personal access tokens -> Fine-grained token (read-only is enough). |
-| `GITHUB_ORGS` | Yes | `supabase,python,digitalocean,pytorch,the-algorithms,freeCodeCamp` | Organization names from GitHub URLs, e.g. `https://github.com/python` -> `python`. |
-| `CHECK_INTERVAL_MINUTES` | Yes | `60` | Your preference (60 = hourly). |
-| `STARTUP_LOOKBACK_HOURS` | Yes | `2` | Your preference for first-run lookback. |
-| `GITHUB_PER_PAGE` | Yes | `100` | Keep `100` (GitHub max per page). |
-| `SMTP_HOST` | Yes | `smtp.gmail.com` | Gmail SMTP host (fixed value). |
-| `SMTP_PORT` | Yes | `587` | Gmail SMTP TLS port (fixed value). |
-| `SMTP_USER` | Yes | `you@gmail.com` | Your Gmail address. |
-| `SMTP_PASS` | Yes | `abcd efgh ijkl mnop` | Google Account -> Security -> 2-Step Verification -> App passwords -> create app password. |
-| `EMAIL_FROM` | Yes | `you@gmail.com` | Usually same as `SMTP_USER`. |
-| `EMAIL_TO` | Yes | `alerts@yourmail.com` | Email(s) that should receive digest (comma-separated for multiple). |
-| `DB_PATH` | Yes | `/data/notifier.db` | Keep default unless you need a custom path. |
-| `LOG_LEVEL` | Yes | `INFO` | Usually `INFO`. Use `DEBUG` only for troubleshooting. |
+**Infrastructure:**
+- Runs inside Docker on an AWS EC2 Ubuntu VM
+- Auto-deploys on every `git push` via GitHub Actions self-hosted runner
+- Zero downtime redeploy with `docker compose up -d --build`
 
 ---
 
-## 4. Deploy on cloud VM (step-by-step)
+## Tech Stack
 
-1. SSH into VM.
-2. Clone/copy this project folder to VM.
-3. Go to project directory.
-4. Create `.env` from example.
-5. Edit `.env` and fill real values.
-6. Start service with Docker Compose.
-7. Watch logs for first run.
+| Layer | Tech |
+|---|---|
+| Language | Python 3.11 |
+| Scheduling | Native Python (`time.sleep` loop) |
+| Storage | SQLite via `sqlite3` |
+| Email | Gmail SMTP via `smtplib` |
+| Containerization | Docker + Docker Compose |
+| CI/CD | GitHub Actions (self-hosted runner on EC2) |
+| Cloud | AWS EC2 (Ubuntu) |
 
-Commands:
+---
+
+## Quick Start (Local)
 
 ```bash
+git clone https://github.com/surya-pratap-singh-dev/github-oss-issue-notifier
 cd github-oss-issue-notifier
+
+cp .env.example .env
+# fill in your values (see table below)
+
+docker compose up --build
+```
+
+Logs will show:
+```
+Monitoring: supabase, python, digitalocean ...
+No new issues found.        # or
+Digest sent with 4 issues.
+```
+
+---
+
+## Environment Variables
+
+| Variable | Required | Example | Source |
+|---|---|---|---|
+| `GITHUB_TOKEN` | Recommended | `github_pat_xxx` | GitHub → Settings → Developer settings → PAT (read-only) |
+| `GITHUB_ORGS` | Yes | `supabase,python` | Org names from GitHub URLs |
+| `CHECK_INTERVAL_MINUTES` | Yes | `60` | Your preference |
+| `STARTUP_LOOKBACK_HOURS` | Yes | `2` | First-run lookback window |
+| `GITHUB_PER_PAGE` | Yes | `100` | Keep at 100 (GitHub max) |
+| `SMTP_HOST` | Yes | `smtp.gmail.com` | Fixed for Gmail |
+| `SMTP_PORT` | Yes | `587` | Fixed for Gmail TLS |
+| `SMTP_USER` | Yes | `you@gmail.com` | Your Gmail |
+| `SMTP_PASS` | Yes | `abcd efgh ijkl mnop` | Google Account → Security → App Passwords |
+| `EMAIL_FROM` | Yes | `you@gmail.com` | Same as `SMTP_USER` |
+| `EMAIL_TO` | Yes | `alerts@yourmail.com` | Destination (comma-sep for multiple) |
+| `DB_PATH` | Yes | `/data/notifier.db` | Keep default |
+| `LOG_LEVEL` | Yes | `INFO` | `DEBUG` for troubleshooting |
+
+---
+
+## Deploy on AWS EC2
+
+### Prerequisites
+- Ubuntu EC2 instance (t2.micro free tier works)
+- Docker + Docker Compose installed on VM
+- Gmail with 2-Step Verification enabled
+
+### Steps
+
+```bash
+# SSH into your VM
+ssh -i your-key.pem ubuntu@your-ec2-ip
+
+# Clone the repo
+git clone https://github.com/surya-pratap-singh-dev/github-oss-issue-notifier
+cd github-oss-issue-notifier
+
+# Create and fill .env
 cp .env.example .env
 nano .env
+
+# Run
 docker compose up -d --build
 docker compose logs -f
 ```
 
 ---
 
-## 5. Useful operations
+## CI/CD Pipeline
 
-Restart after config change:
+This project uses a **self-hosted GitHub Actions runner** on the EC2 instance.
+
+Every push to `main`:
+1. Triggers the runner on the VM
+2. Checks out latest code
+3. Validates Python syntax
+4. Rebuilds and restarts the Docker container
+
+```yaml
+# .github/workflows/deploy.yml
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: self-hosted
+```
+
+To add the runner to your own VM: `Settings → Actions → Runners → New self-hosted runner`.
+
+---
+
+## Useful Commands
 
 ```bash
+# Restart after config change
 docker compose up -d --build
-```
 
-Stop service:
-
-```bash
+# Stop
 docker compose down
-```
 
-Check running container:
-
-```bash
+# Check running container
 docker ps
+
+# View logs
+docker compose logs -f
 ```
 
 ---
 
-## 6. Verify it is working
+## Verify It's Working
 
-1. Logs should show monitored org names.
-2. Logs should show either:
-   - `No new issues found.`
-   - or `Digest sent with X issues.`
-3. Check inbox (and spam folder) for subject like:
-   - `[OSS Watch] X new GitHub issues (...)`
+1. Logs show monitored org names on startup
+2. Every interval shows either `No new issues found.` or `Digest sent with X issues.`
+3. Check inbox (and spam) for subject: `[OSS Watch] X new GitHub issues (...)`
 
 ---
 
-## 7. Notes and tips
+## Notes
 
-1. If you monitor many orgs, set `GITHUB_TOKEN` to avoid strict unauthenticated rate limits.
-2. Wrong org names are skipped with an error in logs.
-3. Keep `.env` private. Never commit it to public repos.
-4. For Gmail, normal account password will not work; App Password is required.
+- Set `GITHUB_TOKEN` when monitoring many orgs — unauthenticated rate limit is 60 req/hr
+- Wrong org names are skipped with a log error
+- Never commit `.env` — it's in `.gitignore`
+- Gmail requires App Password, not your account password
+
+---
+
+## Author
+
+**Surya Pratap Singh** — [github.com/surya-pratap-singh-dev](https://github.com/surya-pratap-singh-dev)
