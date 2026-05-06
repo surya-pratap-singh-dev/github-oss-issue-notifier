@@ -24,6 +24,15 @@ Most developers miss great open-source contribution opportunities because they d
 
 ---
 
+### What I learned
+
+- Designing long-running backend services
+- Handling API rate limits in production systems
+- Automating deployments using GitHub Actions self-hosted runners
+- Managing containerized workloads on cloud infrastructure
+
+---
+
 ## Architecture
 
 ```
