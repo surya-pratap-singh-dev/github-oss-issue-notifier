@@ -24,7 +24,8 @@ Most developers miss great open-source contribution opportunities because they d
 
 ---
 
-### What I learned
+## What I learned
+
 
 - Designing long-running backend services
 - Handling API rate limits in production systems
