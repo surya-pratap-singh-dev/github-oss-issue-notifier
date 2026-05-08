@@ -197,7 +197,66 @@ docker compose logs -f
 - Gmail requires App Password, not your account password
 
 ---
+## 🚀 Advanced Improvements
+
+### 1. Real-Time Event Processing
+Migrated from a polling-based architecture to an event-driven system using GitHub Webhooks.  
+This enables instant detection of newly opened issues without relying on periodic API calls.
+
+**Benefits:**
+- Real-time notifications
+- Reduced API usage
+- More efficient system design
+
+---
+
+### 2. High-Performance Caching Layer
+Integrated Redis as an in-memory data store for fast deduplication and caching of processed issues.
+
+**Benefits:**
+- Prevents duplicate alerts efficiently
+- Reduces database load
+- Improves overall system performance
+
+---
+
+### 3. Production-Grade Email Delivery
+Replaced traditional SMTP with scalable email services such as Amazon SES / SendGrid.
+
+**Features:**
+- HTML email templates
+- Delivery tracking (open/click rates)
+- Improved email reliability
+
+---
+
+### 4. Scalable Cloud Architecture
+Redesigned the system using AWS cloud services for better scalability and fault tolerance.
+
+**Components:**
+- Queue-based processing using SQS
+- Serverless compute with Lambda
+- Persistent storage using RDS / DynamoDB
+
+**Benefits:**
+- Handles traffic spikes
+- Decoupled architecture
+- High availability
+
+---
+
+### 5. Smart Filtering & Personalization
+Implemented user-defined filters to deliver highly relevant issue alerts.
+
+**Capabilities:**
+- Filter by labels (e.g., `good first issue`)
+- Language-based filtering
+- Keyword-based matching
+
+**Future Scope:**
+- Machine learning-based recommendation system
+
+---
 
 ## Author
-
-**Surya Pratap Singh** — [surya](https://github.com/surya-pratap-singh-dev)
+**Surya Pratap Singh** — [surya](https://github.com/surya-pratap-singh-dev) 
