@@ -22,6 +22,9 @@ Most developers miss great open-source contribution opportunities because they d
 
 **Monitored by default:** `supabase`, `python`, `digitalocean`, `pytorch`, `the-algorithms`, `freeCodeCamp` — fully configurable.
 
+<img width="1038" height="512" alt="Screenshot 2026-06-06 044801" src="https://github.com/user-attachments/assets/8a76a98e-19f2-4612-8542-3a3aea489615" />
+
+
 ---
 
 ## What I learned
